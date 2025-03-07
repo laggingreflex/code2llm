@@ -10,17 +10,25 @@ export async function main(opts) {
   const _ = { opts, startedAt: new Date() };
   let gitignores = [];
   try {
+    console.log('Getting files...');
     const files = (_.files = await fs.readdir(opts.path, { recursive: true }));
+    console.log('Got files:', files.length);
     gitignores = _.gitignores = opts.gitignore
       .flatMap(flatMapGitignore)
       .filter(Boolean);
+    console.log('Filtering...');
     const filtered = (_.filtered = files.filter(filter));
+    console.log('Filtered files:', filtered.length);
+    console.log('Sorting...');
     const sorted = (_.sorted = filtered.sort(sort));
+    console.log('Finalizing...');
     const final = (_.final = sorted.map(finalMap).join('\n'));
     if (opts.output) {
       fs.writeFileSync(opts.output, final);
       console.log(
-        `Wrote to ${opts.output}, ${filtered.length} files (excluded ${files.length-filtered.length}), ${final.length} chars`
+        `Wrote to ${opts.output}, ${filtered.length} files (excluded ${
+          files.length - filtered.length
+        }), ${final.length} chars`
       );
     } else {
       console.log(final);
@@ -35,24 +43,48 @@ export async function main(opts) {
   }
 
   function filter(path) {
-    const _ = { path, startedAt: new Date() };
+    const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
       // const includesGit = (_.includesGit = path?.includes?.('.git'));
       // if (includesGit) result = _.result = false;
       const stats = (_.stats = fs.statSync(path));
       const isFile = (_.isFile = stats.isFile());
-      if (!isFile) result = _.result = false;
+
+      if (!isFile) {
+        result = _.result = false;
+        _.reason.push(`isFile: ${isFile}`);
+        // return result;
+      }
 
       const isBinary = (_.isBinary = _.isFile && isBinaryFile(path));
-      if (isBinary) result = _.result = false;
+      if (isBinary) {
+        result = _.result = false;
+        _.reason.push(`isBinary: ${isBinary}`);
+        // return result;
+      }
 
       for (const commonExclude of opts.commonExcludes) {
-        if (path.includes(commonExclude)) result = _.result = false;
+        if (path.includes(commonExclude)) {
+          result = _.result = false;
+          _.reason.push(`commonExclude: ${commonExclude}`);
+          break;
+          // return result;
+        }
       }
 
       for (const gitignore of gitignores) {
-        if (micromatch.isMatch(path, gitignore)) result = _.result = false;
+        if (
+          /* This is a weird bug, apparently if a gitignore starts with ! EVERY file is ignored... */
+          !gitignore.startsWith('!') &&
+          /* */
+          micromatch.isMatch(path, gitignore)
+        ) {
+          result = _.result = false;
+          _.reason.push(`gitignore: ${gitignore}`);
+          break;
+          // return result;
+        }
       }
 
       /* If all files pass the filters, return true */
@@ -63,8 +95,11 @@ export async function main(opts) {
     } finally {
       _.endedAt = new Date();
       _.runTime = +_.endedAt - _.startedAt;
-      // if (path.includes('2dc4f893a3272e7b'))
-      // console.debug('filter', _);
+      if (
+        path.endsWith('core-view-component-layout.tsx') ||
+        path.endsWith('nxdeps.json')
+      )
+        console.debug('filter', _);
     }
   }
 
