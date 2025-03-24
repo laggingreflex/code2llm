@@ -105,11 +105,19 @@ export async function main(opts) {
 
   function flatMapGitignore(gitignoreFile) {
     const _ = { args: gitignoreFile, startedAt: new Date() };
+    let contents;
     try {
       if (gitignoreFile.startsWith('~')) {
         gitignoreFile = _['~'] = gitignoreFile.replace('~', homedir);
       }
-      const contents = (_.contents = fs.readFileSync(gitignoreFile, 'utf8'));
+      try {
+        contents = _.contents = fs.readFileSync(gitignoreFile, 'utf8');
+      } catch (error) {
+        console.warn(
+          `[WARN] No contents found in gitignore file: '${gitignoreFile}'. Error: ${error.message}`
+        );
+        return [];
+      }
       return (_.result = contents
         .split('\n')
         .map((line) => line.trim())
