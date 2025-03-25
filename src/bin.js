@@ -53,6 +53,7 @@ yargs(hideBin(process.argv))
         '.svg',
         '.old.',
         '.config.',
+        '.vite',
       ],
     },
     gitignore: {

@@ -22,7 +22,12 @@ export async function main(opts) {
     console.log('Sorting...');
     const sorted = (_.sorted = filtered.sort(sort));
     console.log('Finalizing...');
-    const final = (_.final = sorted.map(finalMap).join('\n'));
+    let final = (_.final = sorted.map(finalMap).join('\n'));
+    console.log('Adding tree...');
+    const tree = (_.tree = sorted.map((file) => `  ${file}`).join('\n'));
+    console.log('Tree:', tree);
+    final = `# ${opts.path}\n\n${tree}\n\n${final}`;
+
     if (opts.output) {
       fs.writeFileSync(opts.output, final);
       console.log(
@@ -133,6 +138,7 @@ export async function main(opts) {
   }
 
   function sort(a, b) {
+    return 0;
     const _ = { a, b, startedAt: new Date() };
     try {
       return a.length - b.length;
