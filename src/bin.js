@@ -21,7 +21,13 @@ yargs(hideBin(process.argv))
       alias: 'o',
       type: 'string',
       description: 'Output file',
-      default: `../${cwdBase}.md`,
+      default: `../${cwdBase}_${
+        new Date()
+          .toISOString()
+          .replaceAll('T', '_')
+          .replaceAll(':', '-')
+          .split('.')[0]
+      }.md`,
     },
     exclude: {
       alias: 'e',
@@ -37,6 +43,17 @@ yargs(hideBin(process.argv))
         '.vscode',
         'node_modules',
         'dist',
+        '.spec.',
+        '.css',
+        '.d.ts',
+        '.prod.',
+        '.ico',
+        '.json',
+        'Jenkinsfile',
+        '.config.',
+        '.preset.',
+        'README',
+        'output.',
         'build',
         'coverage',
         'tmp',
@@ -46,14 +63,23 @@ yargs(hideBin(process.argv))
         'package-lock.json',
         'lock',
         '.nx',
+        'nx-welcome',
         'tsconfig',
         'eslint',
         'babelrc',
         'browserslistrc',
+        'prettierrc',
+        'editorconfig',
+        'polyfills',
+        'environment.',
+        'e2e',
+        'ignore',
         '.svg',
         '.old.',
         '.config.',
         '.vite',
+        'terms-conditions',
+        'privacy-policy',
       ],
     },
     gitignore: {

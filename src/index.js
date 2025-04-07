@@ -4,6 +4,8 @@ import micromatch from 'micromatch';
 import OS from 'os';
 
 const homedir = OS.homedir();
+const matchComments = /^[ ]*\/\//;
+const matchTodos = /todo/i;
 
 export default main;
 export async function main(opts) {
@@ -104,7 +106,12 @@ export async function main(opts) {
         path.endsWith('core-view-component-layout.tsx') ||
         path.endsWith('nxdeps.json')
       )
-        console.debug('filter', _);
+        console.debug(
+          'Sample Filter',
+          _.result ? 'included' : 'excluded',
+          _.path,
+          ..._.reason
+        );
     }
   }
 
@@ -138,6 +145,11 @@ export async function main(opts) {
   }
 
   function sort(a, b) {
+    return a.localeCompare(b);
+    const a_ = a.split('').reverse().join('');
+    const b_ = b.split('').reverse().join('');
+    console.log({ a_, b_ });
+    return a_.localeCompare(b_);
     return 0;
     const _ = { a, b, startedAt: new Date() };
     try {
@@ -171,7 +183,9 @@ export async function main(opts) {
     const _ = { path, startedAt: new Date() };
     try {
       const extension = (_.extension = path.split('.').pop());
-      const contents = (_.contents = fs.readFileSync(path, 'utf8'));
+      const contents = (_.contents = modifyContents(
+        fs.readFileSync(path, 'utf8')
+      ));
       const addedLineNumbers = (_.addedLineNumbers = contents
         .split('\n')
         .map((line, index) => `${index + 1}: ${line}`)).join('\n');
@@ -200,4 +214,20 @@ export async function main(opts) {
       // console.debug('finalMap', _);
     }
   }
+}
+
+function modifyContents(contents) {
+  return contents
+    .split(/[\n\r]+/g)
+    .filter((line) => {
+      if (line.length >= 200) return false;
+      if (matchComments.test(line)) {
+        if (matchTodos.test(line)) {
+          return true;
+        } else {
+          return false;
+        }
+      } else return true;
+    })
+    .join('\n');
 }
