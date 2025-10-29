@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import { isBinaryFileSync as isBinaryFile } from 'isbinaryfile';
 import micromatch from 'micromatch';
 import OS from 'os';
+import { hasLongWord } from './utils.js';
 
 const homedir = OS.homedir();
 const matchComments = /^[ ]*\/\//;
@@ -221,6 +222,7 @@ function modifyContents(contents) {
     .split(/[\n\r]+/g)
     .filter((line) => {
       if (line.length >= 200) return false;
+      if (hasLongWord(line)) return false;
       if (matchComments.test(line)) {
         if (matchTodos.test(line)) {
           return true;
