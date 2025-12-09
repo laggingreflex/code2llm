@@ -94,6 +94,10 @@ export async function main(opts) {
       return result;
     } catch (e) {
       _.error = e;
+      if (opts.halt !== false) {
+        console.warn('[WARN] Error filtering file:', path, e.message);
+        return false;
+      }
       throw e;
     } finally {
       _.endedAt = new Date();
