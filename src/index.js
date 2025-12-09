@@ -16,9 +16,7 @@ export async function main(opts) {
     console.log('Getting files...');
     const files = (_.files = await fs.readdir(opts.path, { recursive: true }));
     console.log('Got files:', files.length);
-    gitignores = _.gitignores = opts.gitignore
-      .flatMap(flatMapGitignore)
-      .filter(Boolean);
+    gitignores = _.gitignores = opts.gitignore.flatMap(flatMapGitignore).filter(Boolean);
     console.log('Filtering...');
     const filtered = (_.filtered = files.filter(filter));
     console.log('Filtered files:', filtered.length);
@@ -27,17 +25,13 @@ export async function main(opts) {
     console.log('Finalizing...');
     let final = (_.final = sorted.map(finalMap).join('\n'));
     console.log('Adding tree...');
-    const tree = (_.tree = sorted.map((file) => `  ${file}`).join('\n'));
+    const tree = (_.tree = sorted.map(file => `  ${file}`).join('\n'));
     console.log('Tree:', tree);
     final = `# ${opts.path}\n\n${tree}\n\n${final}`;
 
     if (opts.output) {
       fs.writeFileSync(opts.output, final);
-      console.log(
-        `Wrote to ${opts.output}, ${filtered.length} files (excluded ${
-          files.length - filtered.length
-        }), ${final.length} chars`
-      );
+      console.log(`Wrote to ${opts.output}, ${filtered.length} files (excluded ${files.length - filtered.length}), ${final.length} chars`);
     } else {
       console.log(final);
     }
@@ -66,6 +60,7 @@ export async function main(opts) {
       }
 
       const isBinary = (_.isBinary = _.isFile && isBinaryFile(path));
+
       if (isBinary) {
         result = _.result = false;
         _.reason.push(`isBinary: ${isBinary}`);
@@ -126,15 +121,13 @@ export async function main(opts) {
       try {
         contents = _.contents = fs.readFileSync(gitignoreFile, 'utf8');
       } catch (error) {
-        console.warn(
-          `[WARN] No contents found in gitignore file: '${gitignoreFile}'. Error: ${error.message}`
-        );
+        console.warn(`[WARN] No contents found in gitignore file: '${gitignoreFile}'. Error: ${error.message}`);
         return [];
       }
       return (_.result = contents
         .split('\n')
-        .map((line) => line.trim())
-        .filter((line) => !line.startsWith('#')));
+        .map(line => line.trim())
+        .filter(line => !line.startsWith('#')));
     } catch (e) {
       _.error = e;
       throw e;
@@ -184,12 +177,8 @@ export async function main(opts) {
     const _ = { path, startedAt: new Date() };
     try {
       const extension = (_.extension = path.split('.').pop());
-      const contents = (_.contents = modifyContents(
-        fs.readFileSync(path, 'utf8')
-      ));
-      const addedLineNumbers = (_.addedLineNumbers = contents
-        .split('\n')
-        .map((line, index) => `${index + 1}: ${line}`)).join('\n');
+      const contents = (_.contents = modifyContents(fs.readFileSync(path, 'utf8')));
+      const addedLineNumbers = (_.addedLineNumbers = contents.split('\n').map((line, index) => `${index + 1}: ${line}`)).join('\n');
       return (_.result = [
         ``,
         ``,
@@ -220,7 +209,7 @@ export async function main(opts) {
 function modifyContents(contents) {
   return contents
     .split(/[\n\r]+/g)
-    .filter((line) => {
+    .filter(line => {
       if (line.length >= 200) return false;
       if (hasLongWord(line)) return false;
       if (matchComments.test(line)) {
