@@ -135,3 +135,7 @@ yargs(hideBin(process.argv))
     },
   })
   .help().argv;
+
+
+// console.debug = () => {};
+// console.log = ( (log, global) => (...args) => { const lastTime = global.__CONSOLE_LAST_TIME__ || Date.now(); const now = Date.now(); global.__CONSOLE_LAST_TIME__ = now; log(...args, `[+${now - lastTime}ms]`); } )(console.log.bind(console), {});
