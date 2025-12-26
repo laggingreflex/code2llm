@@ -32,7 +32,11 @@ export async function main(opts) {
 
     if (opts.output) {
       fs.writeFileSync(opts.output, final);
-      console.log(`Wrote to ${opts.output}, ${filtered.length} files (excluded ${files.length - filtered.length}), ${final.length} chars`);
+      console.log(
+        `Wrote to ${opts.output}, ${filtered.length} files (excluded ${files.length - filtered.length}), ${
+          final.length
+        } chars`,
+      );
     } else {
       console.log(final);
     }
@@ -50,6 +54,18 @@ export async function main(opts) {
     const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
+
+      for (let commonExclude of opts.commonExcludes) {
+        commonExclude = Path.normalize(commonExclude);
+        if (path.includes(commonExclude)) {
+          _.reason.push(`commonExclude: ${commonExclude}`);
+          console.debug(`Excluding "${path}" since it matches ${commonExclude}`);
+          return (result = _.result = false);
+          // return result;
+          break;
+        }
+      }
+
       // const includesGit = (_.includesGit = path?.includes?.('.git'));
       // if (includesGit) result = _.result = false;
       const stats = (_.stats = fs.statSync(path));
@@ -67,17 +83,6 @@ export async function main(opts) {
         result = _.result = false;
         _.reason.push(`isBinary: ${isBinary}`);
         // return result;
-      }
-
-      for (let commonExclude of opts.commonExcludes) {
-        commonExclude = Path.normalize(commonExclude)
-        if (path.includes(commonExclude)) {
-          result = _.result = false;
-          _.reason.push(`commonExclude: ${commonExclude}`);
-          console.debug(`Excluding "${path}" since it matches ${commonExclude}`);
-          break;
-          // return result;
-        }
       }
 
       for (const gitignore of gitignores) {
@@ -106,16 +111,8 @@ export async function main(opts) {
     } finally {
       _.endedAt = new Date();
       _.runTime = +_.endedAt - _.startedAt;
-      if (
-        path.endsWith('core-view-component-layout.tsx') ||
-        path.endsWith('nxdeps.json')
-      )
-        console.debug(
-          'Sample Filter',
-          _.result ? 'included' : 'excluded',
-          _.path,
-          ..._.reason
-        );
+      if (path.endsWith('core-view-component-layout.tsx') || path.endsWith('nxdeps.json'))
+        console.debug('Sample Filter', _.result ? 'included' : 'excluded', _.path, ..._.reason);
     }
   }
 
@@ -186,7 +183,9 @@ export async function main(opts) {
     try {
       const extension = (_.extension = path.split('.').pop());
       const contents = (_.contents = modifyContents(fs.readFileSync(path, 'utf8')));
-      const addedLineNumbers = (_.addedLineNumbers = contents.split('\n').map((line, index) => `${index + 1}: ${line}`)).join('\n');
+      const addedLineNumbers = (_.addedLineNumbers = contents
+        .split('\n')
+        .map((line, index) => `${index + 1}: ${line}`)).join('\n');
       return (_.result = [
         ``,
         ``,
