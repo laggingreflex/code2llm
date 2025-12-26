@@ -2,6 +2,7 @@ import fs from 'fs-extra';
 import { isBinaryFileSync as isBinaryFile } from 'isbinaryfile';
 import micromatch from 'micromatch';
 import OS from 'os';
+import Path from 'path';
 import { hasLongWord } from './utils.js';
 
 const homedir = OS.homedir();
@@ -45,6 +46,7 @@ export async function main(opts) {
   }
 
   function filter(path) {
+    path = Path.normalize(path);
     const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
@@ -67,10 +69,12 @@ export async function main(opts) {
         // return result;
       }
 
-      for (const commonExclude of opts.commonExcludes) {
+      for (let commonExclude of opts.commonExcludes) {
+        commonExclude = Path.normalize(commonExclude)
         if (path.includes(commonExclude)) {
           result = _.result = false;
           _.reason.push(`commonExclude: ${commonExclude}`);
+          console.debug(`Excluding "${path}" since it matches ${commonExclude}`);
           break;
           // return result;
         }
