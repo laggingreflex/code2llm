@@ -84,6 +84,7 @@ yargs(hideBin(process.argv))
         'ignore',
         '.svg',
         '.old.',
+        '.old/',
         // '.config.',
         '.vite/',
         'pdfbox',
