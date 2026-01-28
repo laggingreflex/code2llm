@@ -54,7 +54,6 @@ export async function main(opts) {
     const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
-
       for (let commonExclude of opts.commonExcludes) {
         commonExclude = Path.normalize(commonExclude);
         if (path.includes(commonExclude)) {
