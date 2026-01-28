@@ -227,6 +227,5 @@ function modifyContents(contents, opts = {}) {
       } else return true;
     })
     .join('\n')
-    .substring(0, opts.maxContentLength || 1000)
-    ;
+    .substring(0, opts.maxContentLength || 1000);
 }
