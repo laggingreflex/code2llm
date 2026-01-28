@@ -87,6 +87,7 @@ yargs(hideBin(process.argv))
         'privacy-policy',
         '.min.',
         '.astro/',
+        '.next/',
       ],
     },
     gitignore: {
