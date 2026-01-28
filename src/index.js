@@ -181,7 +181,7 @@ export async function main(opts) {
     const _ = { path, startedAt: new Date() };
     try {
       const extension = (_.extension = path.split('.').pop());
-      const contents = (_.contents = modifyContents(fs.readFileSync(path, 'utf8')));
+      const contents = (_.contents = modifyContents(fs.readFileSync(path, 'utf8'), opts));
       const addedLineNumbers = (_.addedLineNumbers = contents
         .split('\n')
         .map((line, index) => `${index + 1}: ${line}`)).join('\n');
@@ -212,7 +212,7 @@ export async function main(opts) {
   }
 }
 
-function modifyContents(contents) {
+function modifyContents(contents, opts = {}) {
   return contents
     .split(/[\n\r]+/g)
     .filter(line => {
@@ -226,5 +226,7 @@ function modifyContents(contents) {
         }
       } else return true;
     })
-    .join('\n');
+    .join('\n')
+    .substring(0, opts.maxContentLength || 1000)
+    ;
 }
