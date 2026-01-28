@@ -135,8 +135,21 @@ yargs(hideBin(process.argv))
       }
     },
   })
+  .middleware(middleware)
   .help().argv;
 
+function middleware(argv) {
+  // console.log(`middleware:`, args);
+  // for (const arg )
+  for (const key in argv) {
+    const val = argv[key];
+    if (val?.includes?.('~')) {
+      argv[key] = val.replace('~', OS.homedir());
+    }
+  }
+  // process.exit()
+  return this;
+}
 
 console.debug = () => {};
 // console.log = ( (log, global) => (...args) => { const lastTime = global.__CONSOLE_LAST_TIME__ || Date.now(); const now = Date.now(); global.__CONSOLE_LAST_TIME__ = now; log(...args, `[+${now - lastTime}ms]`); } )(console.log.bind(console), {});
