@@ -21,13 +21,7 @@ yargs(hideBin(process.argv))
       alias: 'o',
       type: 'string',
       description: 'Output file',
-      default: `../${cwdBase}_${
-        new Date()
-          .toISOString()
-          .replaceAll('T', '_')
-          .replaceAll(':', '-')
-          .split('.')[0]
-      }.md`,
+      default: `~/downloads/${cwdBase}.md`,
     },
     exclude: {
       alias: 'e',
