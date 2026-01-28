@@ -54,11 +54,11 @@ export async function main(opts) {
     const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
-      for (let commonExclude of opts.commonExcludes) {
-        commonExclude = Path.normalize(commonExclude);
-        if (path.includes(commonExclude)) {
-          _.reason.push(`commonExclude: ${commonExclude}`);
-          console.debug(`Excluding "${path}" since it matches ${commonExclude}`);
+      for (let exclude of [...opts.commonExcludes, ...(opts.exclude || [])]) {
+        exclude = Path.normalize(exclude);
+        if (path.includes(exclude)) {
+          _.reason.push(`exclude: ${exclude}`);
+          console.debug(`Excluding "${path}" since it matches ${exclude}`);
           return (result = _.result = false);
           // return result;
           break;
