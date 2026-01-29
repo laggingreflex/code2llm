@@ -101,6 +101,12 @@ yargs(hideBin(process.argv))
       type: 'array',
       description: 'Include files',
     },
+    maxContentLength: {
+      alias: 'l',
+      type: 'number',
+      description: 'Maximum content length',
+      default: 2000,
+    },
     verbose: {
       alias: 'v',
       type: 'boolean',
