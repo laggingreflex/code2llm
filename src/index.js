@@ -55,8 +55,8 @@ export async function main(opts) {
     let result = (_.result = true);
     try {
       for (let exclude of [...opts.commonExcludes, ...(opts.exclude || [])]) {
-        exclude = Path.normalize(exclude);
-        if (path.includes(exclude)) {
+        exclude = Path.normalize(exclude).toLowerCase();
+        if (path.toLowerCase().includes(exclude)) {
           _.reason.push(`exclude: ${exclude}`);
           console.debug(`Excluding "${path}" since it matches ${exclude}`);
           return (result = _.result = false);
