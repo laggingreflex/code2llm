@@ -1,8 +1,8 @@
-import fs from 'fs-extra';
-import { isBinaryFileSync as isBinaryFile } from 'isbinaryfile';
-import micromatch from 'micromatch';
 import OS from 'os';
 import Path from 'path';
+import fs from 'fs-extra';
+import micromatch from 'micromatch';
+import { isBinaryFileSync as isBinaryFile } from 'isbinaryfile';
 import { hasLongWord } from './utils.js';
 
 const homedir = OS.homedir();
