@@ -1,4 +1,4 @@
-Yet another code2prompt library.
+Yet another code-to-prompt library.
 
 # Installation & Usage
 
@@ -17,8 +17,15 @@ const md = await code2llm({ path: '.' });
 
 # Features
 
-# Existing works
+- Library + CLI
+- New: process any github/gitlab/bitbucket repo (📢 [fetch-git-repo-async])
 
-[raphaelmansuy]: https://github.com/raphaelmansuy/code2prompt
-[mufeedvh]: https://github.com/mufeedvh/code2prompt
-[puntorigen]: https://github.com/puntorigen/code2prompt
+# Alternatives
+
+- https://github.com/raphaelmansuy/code2prompt
+- https://github.com/mufeedvh/code2prompt
+- https://github.com/puntorigen/code2prompt
+
+<!-- Links -->
+
+[fetch-git-repo-async]: https://gitlab.com/maonianyou/fetch-git-repo-async
