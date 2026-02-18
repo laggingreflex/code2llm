@@ -1,13 +1,17 @@
 import OS from 'os';
 import Path from 'path';
 import fs from 'fs-extra';
+import crypto from 'crypto';
 import micromatch from 'micromatch';
 import { isBinaryFileSync as isBinaryFile } from 'isbinaryfile';
+import fetchGitRepo from 'fetch-git-repo-async';
 import { hasLongWord } from './utils.js';
 
 const homedir = OS.homedir();
 const matchComments = /^[ ]*\/\//;
 const matchTodos = /todo/i;
+
+const readdir = path => fs.readdir(path, { recursive: true });
 
 export default main;
 export async function main(opts) {
@@ -15,30 +19,42 @@ export async function main(opts) {
   let gitignores = [];
   try {
     console.log('Getting files...');
-    const files = (_.files = await fs.readdir(opts.path, { recursive: true }));
+    if (!opts.name) opts.name = opts.path;
+    opts.path = await getPath(opts.path, opts);
+    opts.dirname = Path.dirname(opts.path);
+    opts.basename = Path.basename(opts.path);
+    // console.log(`opts:`, opts)
+    // process.exit(1)
+    const files = (_.files = await readdir(opts.path));
+    // const files = (_.files = (await readdir(opts.path)).map(filename => Path.join(opts.path, filename)));
+    // const files = (_.files = await getPath(opts.path, opts, (_.getFiles = {})));
     console.log('Got files:', files.length);
     gitignores = _.gitignores = opts.gitignore.flatMap(flatMapGitignore).filter(Boolean);
     console.log('Filtering...');
-    const filtered = (_.filtered = files.filter(filter));
+    const filtered = (_.filtered = files.filter(file => filter(file, opts)));
     console.log('Filtered files:', filtered.length);
     console.log('Sorting...');
     const sorted = (_.sorted = filtered.sort(sort));
     console.log('Finalizing...');
-    let final = (_.final = sorted.map(finalMap).join('\n'));
+    let final = (_.final = sorted.map(file => finalMap(file, opts)).join('\n'));
     console.log('Adding tree...');
     const tree = (_.tree = sorted.map(file => `  ${file}`).join('\n'));
     console.log('Tree:', tree);
-    final = `# ${opts.path}\n\n${tree}\n\n${final}`;
+    final = `# ${opts.name}\n\n${tree}\n\n${final}`;
 
-    if (opts.output) {
-      fs.writeFileSync(opts.output, final);
+    if (opts.output === false) {
+      console.log(final);
+    } else {
+      if (!opts.output) {
+        opts.output = Path.join(OS.homedir(), 'downloads', Path.basename(Path.resolve(opts.path)) + '.md');
+        await fs.ensureDir(Path.dirname(opts.output));
+      }
+      await fs.writeFile(opts.output, final);
       console.log(
         `Wrote to ${opts.output}, ${filtered.length} files (excluded ${files.length - filtered.length}), ${
           final.length
         } chars`,
       );
-    } else {
-      console.log(final);
     }
   } catch (e) {
     _.error = e;
@@ -49,8 +65,13 @@ export async function main(opts) {
     // console.debug('main', _);
   }
 
-  function filter(path) {
+  function filter(path, opts) {
     path = Path.normalize(path);
+    const fullPath = Path.join(opts.path, path);
+    // console.log(`fullPath:`, fullPath)
+    // process.exit(1)
+    // const basename = Path.basename(path);
+    // const dirname = Path.dirname(path);
     const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
@@ -67,7 +88,7 @@ export async function main(opts) {
 
       // const includesGit = (_.includesGit = path?.includes?.('.git'));
       // if (includesGit) result = _.result = false;
-      const stats = (_.stats = fs.statSync(path));
+      const stats = (_.stats = fs.statSync(fullPath));
       const isFile = (_.isFile = stats.isFile());
 
       if (!isFile) {
@@ -76,7 +97,7 @@ export async function main(opts) {
         // return result;
       }
 
-      const isBinary = (_.isBinary = _.isFile && isBinaryFile(path));
+      const isBinary = (_.isBinary = _.isFile && isBinaryFile(fullPath));
 
       if (isBinary) {
         result = _.result = false;
@@ -102,6 +123,8 @@ export async function main(opts) {
       return result;
     } catch (e) {
       _.error = e;
+      // console.error(e)
+      // process.exit(1)
       if (opts.halt !== false) {
         console.warn('[WARN] Error filtering file:', path, e.message);
         return false;
@@ -177,11 +200,12 @@ export async function main(opts) {
     }
   }
 
-  function finalMap(path) {
+  function finalMap(path, opts) {
+    const fullPath = Path.join(opts.path, path);
     const _ = { path, startedAt: new Date() };
     try {
       const extension = (_.extension = path.split('.').pop());
-      const contents = (_.contents = modifyContents(fs.readFileSync(path, 'utf8'), opts));
+      const contents = (_.contents = modifyContents(fs.readFileSync(fullPath, 'utf8'), opts));
       const addedLineNumbers = (_.addedLineNumbers = contents
         .split('\n')
         .map((line, index) => `${index + 1}: ${line}`)).join('\n');
@@ -228,4 +252,32 @@ function modifyContents(contents, opts = {}) {
     })
     .join('\n')
     .substring(0, opts.maxContentLength || 1000);
+}
+
+async function getPath(path, argv, _ = {}) {
+  if (await fs.exists(path)) {
+    return path;
+  } else if (argv.github === false) {
+    throw new Error(`Path '${path}' doesn't exist`);
+  } else {
+    console.warn(`Path '${argv.path}' doesn't exist, trying github... (pass --no-github to prevent)`);
+    const tmpDir = Path.join(
+      OS.tmpdir(),
+      // `code2prompt_gh-${crypto.createHash('sha256').update('argv.path').digest('hex').slice(0, 8)}`,
+      `c2pgh_${path.replaceAll(/[^a-z0-9]+/gi, '-').toLowerCase()}`,
+    );
+    if ((await fs.exists(tmpDir)) && (await readdir(tmpDir)).length && !argv.force) {
+      console.warn(`Hashed path for '${argv.path}' already exists (pass --force to re-clone):`, tmpDir);
+      return tmpDir;
+    }
+    await fs.emptyDir(tmpDir);
+    console.log(`Cloning into:`, tmpDir);
+    try {
+      await fetchGitRepo(argv.path, tmpDir);
+      return tmpDir;
+    } catch (error) {
+      console.error(error);
+      throw new Error(`Invalid github path '${path}'`);
+    }
+  }
 }

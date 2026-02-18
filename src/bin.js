@@ -1,12 +1,13 @@
 #!/usr/bin/env node
 
 import OS from 'os';
-import Path from 'path';
+// import Path from 'path';
+// import fs from 'fs-extra';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import main from './index.js';
 
-const cwdBase = Path.basename(process.cwd());
+// const cwdBase = Path.basename(process.cwd());
 
 yargs(hideBin(process.argv))
   .scriptName('code2llm')
@@ -21,7 +22,7 @@ yargs(hideBin(process.argv))
       alias: 'o',
       type: 'string',
       description: 'Output file',
-      default: `~/downloads/${cwdBase}.md`,
+      // default: `~/downloads/${cwdBase}.md`,
     },
     exclude: {
       alias: 'e',
@@ -106,6 +107,10 @@ yargs(hideBin(process.argv))
       type: 'number',
       description: 'Maximum content length',
       default: 2000,
+    },
+    github: {
+      type: 'boolean',
+      description: 'Treat path as a repo on github/remote',
     },
     verbose: {
       alias: 'v',

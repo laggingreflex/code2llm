@@ -9,6 +9,7 @@
   },
   "repository": "laggingreflex/code2llm",
   "dependencies": {
+    "fetch-git-repo-async": "^1.0.1",
     "fs-extra": "^11.3.0",
     "isbinaryfile": "^5.0.4",
     "micromatch": "^4.0.8",
