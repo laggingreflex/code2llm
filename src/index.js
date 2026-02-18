@@ -1,7 +1,6 @@
 import OS from 'os';
 import Path from 'path';
 import fs from 'fs-extra';
-import crypto from 'crypto';
 import micromatch from 'micromatch';
 import { isBinaryFileSync as isBinaryFile } from 'isbinaryfile';
 import fetchGitRepo from 'fetch-git-repo-async';
@@ -23,11 +22,7 @@ export async function main(opts) {
     opts.path = await getPath(opts.path, opts);
     opts.dirname = Path.dirname(opts.path);
     opts.basename = Path.basename(opts.path);
-    // console.log(`opts:`, opts)
-    // process.exit(1)
     const files = (_.files = await readdir(opts.path));
-    // const files = (_.files = (await readdir(opts.path)).map(filename => Path.join(opts.path, filename)));
-    // const files = (_.files = await getPath(opts.path, opts, (_.getFiles = {})));
     console.log('Got files:', files.length);
     gitignores = _.gitignores = opts.gitignore.flatMap(flatMapGitignore).filter(Boolean);
     console.log('Filtering...');
@@ -68,10 +63,6 @@ export async function main(opts) {
   function filter(path, opts) {
     path = Path.normalize(path);
     const fullPath = Path.join(opts.path, path);
-    // console.log(`fullPath:`, fullPath)
-    // process.exit(1)
-    // const basename = Path.basename(path);
-    // const dirname = Path.dirname(path);
     const _ = { path, startedAt: new Date(), reason: [] };
     let result = (_.result = true);
     try {
@@ -81,20 +72,15 @@ export async function main(opts) {
           _.reason.push(`exclude: ${exclude}`);
           console.debug(`Excluding "${path}" since it matches ${exclude}`);
           return (result = _.result = false);
-          // return result;
-          break;
         }
       }
 
-      // const includesGit = (_.includesGit = path?.includes?.('.git'));
-      // if (includesGit) result = _.result = false;
       const stats = (_.stats = fs.statSync(fullPath));
       const isFile = (_.isFile = stats.isFile());
 
       if (!isFile) {
         result = _.result = false;
         _.reason.push(`isFile: ${isFile}`);
-        // return result;
       }
 
       const isBinary = (_.isBinary = _.isFile && isBinaryFile(fullPath));
@@ -102,7 +88,6 @@ export async function main(opts) {
       if (isBinary) {
         result = _.result = false;
         _.reason.push(`isBinary: ${isBinary}`);
-        // return result;
       }
 
       for (const gitignore of gitignores) {
@@ -115,7 +100,6 @@ export async function main(opts) {
           result = _.result = false;
           _.reason.push(`gitignore: ${gitignore}`);
           break;
-          // return result;
         }
       }
 
@@ -123,8 +107,6 @@ export async function main(opts) {
       return result;
     } catch (e) {
       _.error = e;
-      // console.error(e)
-      // process.exit(1)
       if (opts.halt !== false) {
         console.warn('[WARN] Error filtering file:', path, e.message);
         return false;
@@ -161,7 +143,6 @@ export async function main(opts) {
     } finally {
       _.endedAt = new Date();
       _.runTime = +_.endedAt - _.startedAt;
-      // console.debug('flatMapGitignore', _);
     }
   }
 

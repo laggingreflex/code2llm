@@ -1,13 +1,9 @@
 #!/usr/bin/env node
 
 import OS from 'os';
-// import Path from 'path';
-// import fs from 'fs-extra';
 import yargs from 'yargs';
 import { hideBin } from 'yargs/helpers';
 import main from './index.js';
-
-// const cwdBase = Path.basename(process.cwd());
 
 yargs(hideBin(process.argv))
   .scriptName('code2llm')
@@ -145,15 +141,12 @@ yargs(hideBin(process.argv))
   .help().argv;
 
 function middleware(argv) {
-  // console.log(`middleware:`, args);
-  // for (const arg )
   for (const key in argv) {
     const val = argv[key];
     if (val?.includes?.('~')) {
       argv[key] = val.replace('~', OS.homedir());
     }
   }
-  // process.exit()
   return this;
 }
 
