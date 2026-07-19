@@ -146,6 +146,11 @@ function middleware(argv) {
     if (val?.includes?.('~')) {
       argv[key] = val.replace('~', OS.homedir());
     }
+    if (val?.includes?.(',')) {
+      argv[key] = val.split(',').map((v) => v.trim());
+    } else if (val?.[0]?.includes?.(',')) {
+      argv[key] = val[0].split(',').map((v) => v.trim());
+    }
   }
   return this;
 }
